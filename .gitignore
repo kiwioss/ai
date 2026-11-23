@@ -1,5 +1,7 @@
 .DS_Store
 .venv/
+.txt
+.pt
 __pycache__/
 tune/*.pt
 data/input.txt
