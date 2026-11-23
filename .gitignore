@@ -1,6 +1,9 @@
-.DS_Store
+weight/
+data/
+raw/
 .venv/
-.txt
-.pt
+__pycache__/weight/
+data/
+raw/
+.venv/
 __pycache__/
-tune/*.pt
