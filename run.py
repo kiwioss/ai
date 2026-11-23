@@ -148,16 +148,16 @@ class Run:
                 x, y = self.getBatch(trainData)
                 with torch.autocast(device_type=self.device.type, dtype=torch.bfloat16): #Faster 16-bit forward pass
                     _, loss = self.model(x, y) #Forward pass and loss
-                self.optimizer.zero_grad() #Clear the previous gradients
+                self.optimizer.zero_grad() #Clear previous gradients
                 loss.backward() #Backpropagation
                 torch.nn.utils.clip_grad_norm_(self.model.parameters(), 1.0)
-                self.optimizer.step() #Update the weights
+                self.optimizer.step() #Update weights
                 self.step += 1
                 if self.step % self.practice.interval == 0:
                     print(f"step {self.step} | train {self.lossEstimate(trainData):.3f}" f" | val {self.lossEstimate(valData):.3f}")
-        except KeyboardInterrupt: #Ctrl+C stops training but keeps the console
+        except KeyboardInterrupt:
             print("\nkeyboard exception")
-        self.model.eval() #Dropout off again
+        self.model.eval() #Dropout off
         self.saveModel([])
 
     def optimizedTraining(self,args): #Testing Schedule
@@ -189,7 +189,7 @@ class Run:
             "weights": self.model.state_dict(),
             "optimizer": self.optimizer.state_dict(), #Lets training resume smoothly
             "vocab": self.vocab,
-            "config": asdict(self.config), #The shape these weights fit
+            "config": asdict(self.config), #The shape that weights fit
             "step": self.step,
         }, weightsDir)
         print(f"saved at step {self.step}")
@@ -199,7 +199,7 @@ class Run:
 
     def showHelp(self, args):
         for name, (_, description) in self.commands.items():
-            print(f"  {name:<10}{description}") #Pads names so descriptions line up
+            print(f"  {name:<10}{description}")
 
     def quit(self, args):
         self.saveModel([])
