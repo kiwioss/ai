@@ -4,16 +4,19 @@ from dataclasses import dataclass
 #Structure--------------------------------------------------------------------------------
 @dataclass
 class Config:
-    context: int = 512
-    embed: int = 512
-    numHeads: int = 8
-    numLayers: int = 8
-    dropOut: float = 0.15
+    vocab: int = 8192
+    context: int = 640
+    embed: int = 640
+    numHeads: int = 10
+    numLayers: int = 10
+    dropOut: float = 0.1
+    ceiling: int = 100_000
 
 #Training--------------------------------------------------------------------------------
 @dataclass
 class Train:
-    batch: int = 32
+    batch: int = 16
+    accumulate: int = 4
     rate: float = 3e-4
-    numSteps: int = 1500
-    interval: int = 10
+    interval: int = 500
+    ceiling: int = 100_000 #step where the cosine reaches its floor of rate / 10

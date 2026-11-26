@@ -1,9 +1,22 @@
-weight/
-data/
-raw/
-.venv/
-__pycache__/weight/
-data/
-raw/
+#python
 .venv/
 __pycache__/
+*.pyc
+
+#state tokenizer and checkpoints
+state/*
+!state/.gitkeep
+*.pt
+
+#keep the naming rules and source list while ignoring the text and tokens
+data/*
+!data/.gitkeep
+!data/naming.csv
+!data/sources.csv
+
+#temporary downloads
+dl/
+raw/
+
+#macos
+.DS_Store

@@ -1,0 +1,27 @@
+priority,code,section,example
+1,ch,chat,ch000001.txt
+2,qa,questions and answers,qa000001.txt
+3,rs,reasoning,rs000001.txt
+4,mt,math,mt000001.txt
+5,lg,logic,lg000001.txt
+6,pr,programming,pr000001.txt
+7,dc,technical docs,dc000001.txt
+8,cs,computer science,cs000001.txt
+9,en,engineering,en000001.txt
+10,el,electronics,el000001.txt
+11,ph,physics,ph000001.txt
+12,nu,nuclear,nu000001.txt
+13,as,astronomy,as000001.txt
+14,sc,general science,sc000001.txt
+15,cm,chemistry,cm000001.txt
+16,bi,biology,bi000001.txt
+17,md,medical,md000001.txt
+18,ea,earth science,ea000001.txt
+19,ec,economics,ec000001.txt
+20,lw,law,lw000001.txt
+21,hs,history,hs000001.txt
+22,ge,geography,ge000001.txt
+23,pl,philosophy,pl000001.txt
+24,ln,language,ln000001.txt
+25,gn,general knowledge,gn000001.txt
+26,st,stories,st000001.txt
