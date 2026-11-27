@@ -108,7 +108,7 @@ class Run:
         while self.running:
             try:
                 line = input("User: ")
-            except (KeyboardInterrupt, EOFError): #ctrl c or ctrl d at the prompt
+            except (KeyboardInterrupt, EOFError):
                 print()
                 self.quit([])
                 break
@@ -174,13 +174,14 @@ class Run:
             trainingInterval = time.time()
 
             for _ in tqdm(range(count)):
-                x, y = self.getBatch("train") #🚨 error accumulate in config is never used so each step trains on one batch of 16 not 16 times 4 and steps are 4 times smaller than planned
+                self.optimizer.zero_grad() #clear once per real step
 
-                with torch.autocast(device_type=self.device.type, dtype=torch.bfloat16): #16 bit math for speed
-                    _, loss = self.model(x, y) #forward pass and loss
-
-                self.optimizer.zero_grad() #clear the last step gradients
-                loss.backward() #work out every gradient
+                for _ in range(self.practice.accumulate): #small batches added up into one real batch
+                    x, y = self.getBatch("train")
+                    with torch.autocast(device_type=self.device.type, dtype=torch.bfloat16): #16 bit math for speed
+                        _, loss = self.model(x, y) #forward pass and loss
+                    (loss / self.practice.accumulate).backward() #divide so the added gradients become an average
+                    
                 torch.nn.utils.clip_grad_norm_(self.model.parameters(), 1.0) #cap the step size so one bad batch cannot cause a spike
 
                 for prm in self.optimizer.param_groups:
