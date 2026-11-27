@@ -21,11 +21,11 @@ from model.network import Machine
 
 #Paths--------------------------------------------------------------------------------
 root = Path(__file__).resolve().parent #ai folder from any working directory
-dataDir = root / "data" #txt sources and the bin token files made by translate.py
+dataDir = root / "data" #txt sources and the bin token files made by prep.py
 stateDir = root / "state" #tokenizer and saved weights
 memoryDir = stateDir / "memory.pt" #latest weights and optimizer used to resume training
 recordDir = stateDir / "record.pt" #weights from the lowest val loss so far use this one to chat or share
-vocabDir = stateDir / "token.json" #bpe tokenizer made once by translate.py
+vocabDir = stateDir / "token.json" #bpe tokenizer made once by prep.py
 
 
 #Settings--------------------------------------------------------------------------------
@@ -47,7 +47,7 @@ class Run:
         self.device = optimalDevice()
         self.temperature = 0.75 #reply randomness where lower is safer and higher is more varied
         self.config = config #model shape replaced by the checkpoint config if one exists
-        self.practice = practice #training settings like batch rate interval and totalSteps
+        self.practice = practice #training settings like batch accumulate rate interval and ceiling
         self.length = 500 #max tokens per reply
         self.history = "" #conversation so far
         self.step = 0 #total training steps
@@ -174,7 +174,7 @@ class Run:
             trainingInterval = time.time()
 
             for _ in tqdm(range(count)):
-                x, y = self.getBatch("train")
+                x, y = self.getBatch("train") #🚨 error accumulate in config is never used so each step trains on one batch of 16 not 16 times 4 and steps are 4 times smaller than planned
 
                 with torch.autocast(device_type=self.device.type, dtype=torch.bfloat16): #16 bit math for speed
                     _, loss = self.model(x, y) #forward pass and loss
@@ -235,7 +235,7 @@ class Run:
 
     def getBatch(self, source):
         c = self.config.context
-        content, guess = [], [] #⚠️ warning input hides the python input function inside this method so inputs and targets are safer names and output holds the right answers not guesses
+        content, answer = [], [] #content is what the model reads and answer is the right next token at every spot
 
         for _ in range(self.practice.batch):
             code = random.choices(self.codes, self.codeWeights)[0] #pick a section by weight
@@ -248,9 +248,9 @@ class Run:
 
             chunk = torch.from_numpy(data[s:s + c + 1].astype(np.int64)) #c plus 1 tokens turned from uint16 into int64 for the embedding
             content.append(chunk[:-1]) #what the model reads
-            guess.append(chunk[1:]) #same tokens shifted by 1 so each position has the right next token
+            answer.append(chunk[1:]) #same tokens shifted by 1 so each position has the right next token
 
-        return torch.stack(content).to(self.device), torch.stack(guess).to(self.device) #both shaped batch by context
+        return torch.stack(content).to(self.device), torch.stack(answer).to(self.device) #both shaped batch by context
 
     @torch.no_grad() #measuring only with no gradients
     def lossEstimate(self, source):
@@ -264,8 +264,8 @@ class Run:
 
 
     #Saving--------------------------------------------------------------------------------
-    def saveModel(self, args, dir = memoryDir): #⚠️ warning dir hides the python dir function so path is a clearer name
-        dir.parent.mkdir(exist_ok=True)
+    def saveModel(self, args, path = memoryDir): #memory.pt by default or record.pt when a new record is set
+        path.parent.mkdir(exist_ok=True)
 
         torch.save({
             "weights": self.model.state_dict(),
@@ -274,9 +274,9 @@ class Run:
             "recordVal": self.recordVal, #lowest val loss so it survives restarts
             "config": asdict(self.config), #model shape these weights fit
             "step": self.step,
-        }, dir)
+        }, path)
 
-        print(f"saved {dir} at step {self.step}")
+        print(f"saved {path} at step {self.step}")
 
 
     #Commands--------------------------------------------------------------------------------
