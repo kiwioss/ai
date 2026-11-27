@@ -1,7 +1,7 @@
 README · MD
 
 
-# KiwiML
+# ai
  
 A small language model built and trained from scratch: byte-level BPE tokenizer, decoder-only transformer, trained on roughly 3 billion tokens of human-written text.
  
