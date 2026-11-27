@@ -97,6 +97,7 @@ class Run:
             "/clear": (self.clear, "clear history"),
             "/save":  (self.saveModel, "save checkpoint"),
             "/quit":  (self.quit, "exit console"),
+            "/loss":  (self.checkLoss, "display training loss"),
         }
 
 
@@ -181,7 +182,7 @@ class Run:
                     with torch.autocast(device_type=self.device.type, dtype=torch.bfloat16): #16 bit math for speed
                         _, loss = self.model(x, y) #forward pass and loss
                     (loss / self.practice.accumulate).backward() #divide so the added gradients become an average
-                    
+
                 torch.nn.utils.clip_grad_norm_(self.model.parameters(), 1.0) #cap the step size so one bad batch cannot cause a spike
 
                 for prm in self.optimizer.param_groups:
@@ -291,6 +292,13 @@ class Run:
     def quit(self, args):
         self.saveModel([])
         self.running = False
+
+    def checkLoss(self, args):
+        if self.memmap is None: #open the bin files if no /train has run yet
+            self.loadData()
+        train, val = self.lossEstimate("train"), self.lossEstimate("val")
+        self.model.eval() #lossEstimate turns training mode back on at the end
+        print(f"step {self.step} | train {train:.3f} | val {val:.3f}")
 
 
 #Run--------------------------------------------------------------------------------

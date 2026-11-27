@@ -18,5 +18,5 @@ class Train:
     batch: int = 16
     accumulate: int = 4
     rate: float = 3e-4
-    interval: int = 500
+    interval: int = 100
     ceiling: int = 100_000 #step where the cosine reaches its floor of rate / 10
